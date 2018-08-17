@@ -1,21 +1,21 @@
 package com.lapic.thomas.explorador_primeira_tela;
 
+import android.animation.LayoutTransition;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.VideoView;
-
-import java.net.URI;
+import android.widget.SeekBar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -23,14 +23,15 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener {
 
     @BindView(R.id.scroll_view) protected ScrollView scrollView;
-    @BindView(R.id.video_view) protected VideoView videoView;
+    @BindView(R.id.rl_video) protected RelativeLayout rl_video;
+    @BindView(R.id.video_view) protected CustomVideoView videoView;
     @BindView(R.id.rl_details) protected RelativeLayout rl_details;
 
     private final String TAG = this.getClass().getSimpleName();
     private MediaController mediaController;
     private int position = 0;
-    private static float dpWidth;
-    private static float dpHeight;
+    private int width;
+    private int height;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,12 +40,29 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         ButterKnife.bind(this);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
-        dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-        dpHeight = displayMetrics.heightPixels / displayMetrics.density;
+        width = displayMetrics.widthPixels + 144;
+        height = displayMetrics.heightPixels ;
 
-        Log.e(TAG, "deviceWidth: " + dpWidth);
-        Log.e(TAG, "deviceHeight: "+ dpHeight);
-        setFullescreenVideo();
+        Log.e(TAG, "deviceWidth: " + width);
+        Log.e(TAG, "deviceHeight: "+ height);
+
+        prepareVideo();
+        setFullScreenVideo();
+        videoView.start();
+
+        new CountDownTimer(5000, 5000){
+            @Override public void onTick(long millisUntilFinished) { }
+            @Override public void onFinish() {
+                MainActivity.this.setMinimizeVideo();
+            }
+        }.start();
+
+        new CountDownTimer(30000, 30000){
+            @Override public void onTick(long millisUntilFinished) { }
+            @Override public void onFinish() {
+                MainActivity.this.setFullScreenVideo();
+            }
+        }.start();
     }
 
     @Override
@@ -77,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-
         // Store current position.
         savedInstanceState.putInt("CurrentPosition", videoView.getCurrentPosition());
         videoView.pause();
@@ -88,60 +105,64 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
         // Get saved position.
         position = savedInstanceState.getInt("CurrentPosition");
         videoView.seekTo(position);
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        videoView.seekTo(position);
-        if (position == 0) {
-            videoView.start();
-        }
-
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        // When video Screen change size.
-        mediaPlayer.setOnVideoSizeChangedListener(new MediaPlayer.OnVideoSizeChangedListener() {
-            @Override
-            public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-
-                // Re-Set the videoView that acts as the anchor for the MediaController
-                mediaController.setAnchorView(videoView);
-            }
-        });
     }
 
     // METHODS
 
     public void prepareVideo() {
         if (mediaController == null)
-            mediaController = new MediaController(this);
+            mediaController = new MediaController(this, false);
         String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.video ;
         mediaController.setAnchorView(videoView);
-//        mediaController.setMediaPlayer(videoView);
+        mediaController.setMediaPlayer(videoView);
+        videoView.setOnPreparedListener(this);
+        videoView.setMediaController(mediaController);
         videoView.setVideoURI(Uri.parse(videoPath));
-//        videoView.setOnPreparedListener(this);
     }
 
-    public void setFullescreenVideo() {
+    public void setFullScreenVideo() {
         scrollView.setVisibility(View.GONE);
         rl_details.setVisibility(View.GONE);
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        videoView.setLayoutParams(layoutParams);
-        videoView.requestLayout();
-        prepareVideo();
-        mediaController.requestFocus();
-//        videoView.start();
+
+        RelativeLayout.LayoutParams layoutParamsRLVideo = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        rl_video.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
+        rl_video.setLayoutParams(layoutParamsRLVideo);
+        rl_video.setGravity(Gravity.CENTER);
     }
 
     public void setMinimizeVideo() {
-        scrollView.setVisibility(View.VISIBLE);
+        RelativeLayout.LayoutParams relativeLayoutParamDetails = new RelativeLayout.LayoutParams(width/2, height/2);
+        relativeLayoutParamDetails.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        relativeLayoutParamDetails.addRule(RelativeLayout.ALIGN_PARENT_END);
+        relativeLayoutParamDetails.addRule(RelativeLayout.ALIGN_RIGHT);
+        rl_details.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
+        rl_details.setLayoutParams(relativeLayoutParamDetails);
         rl_details.setVisibility(View.VISIBLE);
-//        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams();
 
+        RelativeLayout.LayoutParams layoutParamsRLVideo = new RelativeLayout.LayoutParams(width/2, height/2);
+        layoutParamsRLVideo.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParamsRLVideo.addRule(RelativeLayout.ALIGN_PARENT_END);
+        layoutParamsRLVideo.addRule(RelativeLayout.ALIGN_RIGHT);
+        rl_video.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
+        rl_video.setLayoutParams(layoutParamsRLVideo);
+        rl_video.setGravity(Gravity.CENTER);
+
+        scrollView.setLayoutParams(new RelativeLayout.LayoutParams(width/2, ViewGroup.LayoutParams.WRAP_CONTENT));
+        scrollView.setVisibility(View.VISIBLE);
     }
 
 
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        int topContainerId = getResources().getIdentifier("mediacontroller_progress", "id", "android");
+        SeekBar seekBarVideo = (SeekBar) mediaController.findViewById(topContainerId);
+        seekBarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { seekBar.setEnabled(false); }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { seekBar.setEnabled(false); }
+        });
+    }
 }

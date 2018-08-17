@@ -8,27 +8,25 @@
     android:background="#000"
     android:gravity="center">
 
-    <VideoView
-        android:id="@+id/video_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:layout_centerInParent="true" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/rl_details"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:background="#0033dd"
+        android:animateLayoutChanges="true">
 
     </RelativeLayout>
 
     <ScrollView
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/scroll_view"
         android:layout_alignParentStart="true"
         android:visibility="gone"
+        android:background="#ff0000"
+        android:animateLayoutChanges="true"
         >
 
         <ImageView
@@ -38,5 +36,20 @@
             />
 
     </ScrollView>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rl_video"
+        android:gravity="center"
+        android:animateLayoutChanges="true">
+
+        <com.lapic.thomas.explorador_primeira_tela.CustomVideoView
+            android:id="@+id/video_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
+    </RelativeLayout>
 
 </RelativeLayout>
