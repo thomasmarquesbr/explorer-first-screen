@@ -4,6 +4,7 @@ import android.animation.LayoutTransition;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -16,6 +17,18 @@ import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
+
+import com.lapic.thomas.explorador_primeira_tela.network.MulticastGroup;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,6 +45,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private int position = 0;
     private int width;
     private int height;
+    private MulticastGroup multicastGroup;
+    private String tag_multicast = "first_screen";
+    private String ip_multicast = "230.192.0.10";
+    private int port_multicast = 1027;
+    private Synchronizer synchronizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +128,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         videoView.seekTo(position);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (multicastGroup == null)
+            multicastGroup = new MulticastGroup(this, tag_multicast, ip_multicast, port_multicast);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
     // METHODS
 
     public void prepareVideo() {
@@ -121,6 +151,22 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         videoView.setOnPreparedListener(this);
         videoView.setMediaController(mediaController);
         videoView.setVideoURI(Uri.parse(videoPath));
+
+
+        try {
+            List<JSONObject> list = new ArrayList<>();
+            JSONObject json1= new JSONObject();
+            json1.put("action", "start");
+            json1.put("time", 16);
+            JSONObject json2= new JSONObject();
+            json1.put("action", "start");
+            json1.put("time", 48);
+            list.add(json1);
+            list.add(json2);
+            synchronizer = new Synchronizer(list);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setFullScreenVideo() {
@@ -165,4 +211,36 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             @Override public void onStopTrackingTouch(SeekBar seekBar) { seekBar.setEnabled(false); }
         });
     }
+
+
+
+    public class Synchronizer extends Thread {
+
+        private Handler handler1;
+        private List<JSONObject> listActions;
+
+        public Synchronizer(List<JSONObject> listActions) {
+            this.listActions = listActions;
+            this.handler1 = new Handler();
+        }
+
+        @Override
+        public void run() {
+
+            for (JSONObject action : listActions) {
+
+                try {
+                    String message = URLEncoder.encode(action.toString(), "UTF-8");
+                    if (multicastGroup != null)
+                        multicastGroup.sendMessage(false, message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+
+    }
+
 }
