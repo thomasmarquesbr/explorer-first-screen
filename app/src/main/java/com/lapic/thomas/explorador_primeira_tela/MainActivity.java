@@ -24,8 +24,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +31,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener {
+public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener, CustomVideoView.PlayPauseListener, MediaPlayer.OnCompletionListener {
 
     @BindView(R.id.scroll_view) protected ScrollView scrollView;
     @BindView(R.id.rl_video) protected RelativeLayout rl_video;
@@ -118,8 +116,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         videoView.pause();
     }
 
-
-    // After rotating the phone. This method is called.
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -129,10 +125,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
         if (multicastGroup == null)
             multicastGroup = new MulticastGroup(this, tag_multicast, ip_multicast, port_multicast);
+        multicastGroup.startMessageReceiver();
     }
 
     @Override
@@ -149,24 +146,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         mediaController.setAnchorView(videoView);
         mediaController.setMediaPlayer(videoView);
         videoView.setOnPreparedListener(this);
+        videoView.setPlayPauseListener(this);
+        videoView.setOnCompletionListener(this);
         videoView.setMediaController(mediaController);
         videoView.setVideoURI(Uri.parse(videoPath));
-
-
-        try {
-            List<JSONObject> list = new ArrayList<>();
-            JSONObject json1= new JSONObject();
-            json1.put("action", "start");
-            json1.put("time", 16);
-            JSONObject json2= new JSONObject();
-            json1.put("action", "start");
-            json1.put("time", 48);
-            list.add(json1);
-            list.add(json2);
-            synchronizer = new Synchronizer(list);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     public void setFullScreenVideo() {
@@ -203,6 +186,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("START","drawing");
+            jsonObject.put("duration", (videoView.getDuration()/1000));
+            String message = URLEncoder.encode(jsonObject.toString(), "UTF-8");
+            if (multicastGroup != null)
+                multicastGroup.sendMessage(false, message);
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
         int topContainerId = getResources().getIdentifier("mediacontroller_progress", "id", "android");
         SeekBar seekBarVideo = (SeekBar) mediaController.findViewById(topContainerId);
         seekBarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -212,7 +205,44 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         });
     }
 
+    @Override
+    public void onPlayVideo() {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("RESUME","drawing");
+            String message = URLEncoder.encode(jsonObject.toString(), "UTF-8");
+            if (multicastGroup != null)
+                multicastGroup.sendMessage(false, message);
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void onPauseVideo() {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("PAUSE","drawing");
+            String message = URLEncoder.encode(jsonObject.toString(), "UTF-8");
+            if (multicastGroup != null)
+                multicastGroup.sendMessage(false, message);
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("STOP","drawing");
+            String message = URLEncoder.encode(jsonObject.toString(), "UTF-8");
+            if (multicastGroup != null)
+                multicastGroup.sendMessage(false, message);
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public class Synchronizer extends Thread {
 
@@ -226,9 +256,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
         @Override
         public void run() {
-
             for (final JSONObject action : listActions) {
-
                 try {
                     handler1.postDelayed(new Runnable() {
                         @Override
@@ -245,10 +273,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-
             }
-
         }
 
     }

@@ -3,6 +3,7 @@ package com.lapic.thomas.explorador_primeira_tela;
 import android.animation.LayoutTransition;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.VideoView;
 
 public class CustomVideoView extends VideoView {
@@ -25,11 +26,15 @@ public class CustomVideoView extends VideoView {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
+    public void setPlayPauseListener(PlayPauseListener listener) {
+        mListener = listener;
+    }
+
     @Override
     public void pause() {
         super.pause();
         if (mListener != null) {
-            mListener.onPause();
+            mListener.onPauseVideo();
         }
     }
 
@@ -37,13 +42,13 @@ public class CustomVideoView extends VideoView {
     public void start() {
         super.start();
         if (mListener != null) {
-            mListener.onPlay();
+            mListener.onPlayVideo();
         }
     }
 
     public static interface PlayPauseListener {
-        void onPlay();
-        void onPause();
+        void onPlayVideo();
+        void onPauseVideo();
     }
 
 }
