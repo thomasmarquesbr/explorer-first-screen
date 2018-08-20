@@ -1,5 +1,7 @@
 package com.lapic.thomas.explorador_primeira_tela.network;
 
+import android.util.Log;
+
 import com.lapic.thomas.explorador_primeira_tela.MainActivity;
 
 import org.json.JSONArray;
@@ -27,6 +29,7 @@ public class MulticastGroup extends MulticastManager {
 
         try {
             JSONObject jsonObject = new JSONObject(URLDecoder.decode(message, "UTF-8"));
+            Log.e("first", tag + " > " + message);
         } catch (JSONException | UnsupportedEncodingException e) {
             e.printStackTrace();
         }

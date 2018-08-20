@@ -227,15 +227,25 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         @Override
         public void run() {
 
-            for (JSONObject action : listActions) {
+            for (final JSONObject action : listActions) {
 
                 try {
-                    String message = URLEncoder.encode(action.toString(), "UTF-8");
-                    if (multicastGroup != null)
-                        multicastGroup.sendMessage(false, message);
-                } catch (IOException e) {
+                    handler1.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                            String message = URLEncoder.encode(action.toString(), "UTF-8");
+                            if (multicastGroup != null)
+                                multicastGroup.sendMessage(false, message);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, action.getInt("time") * 1000);
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
 
             }
 
