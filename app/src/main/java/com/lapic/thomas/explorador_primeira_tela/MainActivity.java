@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -48,6 +49,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private String ip_multicast = "230.192.0.10";
     private int port_multicast = 1027;
     private Synchronizer synchronizer;
+
+    private List<String> colors = Arrays.asList("RED", "GREEN", "YELLOW", "BLUE");
+    private List<Integer> anchors = Arrays.asList(19, 23, 47, 57, 82, 90, 95, 99, 115);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,11 +134,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         if (multicastGroup == null)
             multicastGroup = new MulticastGroup(this, tag_multicast, ip_multicast, port_multicast);
         multicastGroup.startMessageReceiver();
+        if (synchronizer != null)
+            synchronizer.play();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (synchronizer != null)
+            synchronizer.pause();
     }
 
     // METHODS
@@ -191,8 +199,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             jsonObject.put("START","drawing");
             jsonObject.put("duration", (videoView.getDuration()/1000));
             String message = URLEncoder.encode(jsonObject.toString(), "UTF-8");
-            if (multicastGroup != null)
+            if (multicastGroup != null) {
                 multicastGroup.sendMessage(false, message);
+                createActions();
+            }
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
@@ -203,6 +213,23 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             @Override public void onStartTrackingTouch(SeekBar seekBar) { seekBar.setEnabled(false); }
             @Override public void onStopTrackingTouch(SeekBar seekBar) { seekBar.setEnabled(false); }
         });
+    }
+
+    public void createActions() throws JSONException {
+        int i = 0;
+        List<JSONObject> jsonObjects = new ArrayList<>();
+        for (Integer time : anchors) {
+            if (i >= 4)
+                i = 0;
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("time", time);
+            jsonObject.put("START", colors.get(i));
+            jsonObject.put("id", i);
+            jsonObjects.add(jsonObject);
+            i++;
+        }
+        synchronizer = new Synchronizer(jsonObjects);
+        synchronizer.start();
     }
 
     @Override
@@ -248,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
         private Handler handler1;
         private List<JSONObject> listActions;
+        private boolean shouldPlay = true;
 
         public Synchronizer(List<JSONObject> listActions) {
             this.listActions = listActions;
@@ -274,6 +302,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                     e.printStackTrace();
                 }
             }
+        }
+
+        public void play() {
+            this.shouldPlay = true;
+        }
+
+        public void pause() {
+            this.shouldPlay = false;
         }
 
     }
