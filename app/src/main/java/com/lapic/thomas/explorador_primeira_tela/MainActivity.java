@@ -32,7 +32,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener, CustomVideoView.PlayPauseListener, MediaPlayer.OnCompletionListener {
+public class MainActivity extends AppCompatActivity
+        implements MediaPlayer.OnPreparedListener, CustomVideoView.PlayPauseListener, MediaPlayer.OnCompletionListener {
 
     @BindView(R.id.scroll_view) protected ScrollView scrollView;
     @BindView(R.id.rl_video) protected RelativeLayout rl_video;
