@@ -1,9 +1,7 @@
 package com.lapic.thomas.explorador_primeira_tela;
 
-import android.animation.LayoutTransition;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.VideoView;
 
 public class CustomVideoView extends VideoView {
