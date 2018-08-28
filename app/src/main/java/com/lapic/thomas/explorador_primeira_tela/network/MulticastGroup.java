@@ -2,9 +2,8 @@ package com.lapic.thomas.explorador_primeira_tela.network;
 
 import android.util.Log;
 
-import com.lapic.thomas.explorador_primeira_tela.MainActivity;
+import com.lapic.thomas.explorador_primeira_tela.PlayerActivity;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,12 +12,15 @@ import java.net.URLDecoder;
 
 public class MulticastGroup extends MulticastManager {
 
-    private final String TAG = this.getClass().getSimpleName();
-    private MainActivity mActivity;
+    private static String tag = "first_screen";
+    private static String multicastIp = "230.192.0.10";
+    private static int multicastPort = 1027;
 
-    public MulticastGroup(MainActivity mainActivity, String tag, String multicastIp, int multicastPort) {
-        super(mainActivity, tag, multicastIp, multicastPort);
-        this.mActivity = mainActivity;
+    private PlayerActivity mActivity;
+
+    public MulticastGroup(PlayerActivity activity) {
+        super(activity, tag, multicastIp, multicastPort);
+        this.mActivity = activity;
     }
 
     @Override

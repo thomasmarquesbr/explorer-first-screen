@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    tools:context=".PlayerActivity"
     android:background="#000"
     android:gravity="center">
 
@@ -44,7 +44,7 @@
         android:gravity="center"
         android:animateLayoutChanges="true">
 
-        <com.lapic.thomas.explorador_primeira_tela.CustomVideoView
+        <com.lapic.thomas.explorador_primeira_tela.view.CustomVideoView
             android:id="@+id/video_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
