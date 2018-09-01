@@ -8,40 +8,135 @@
     android:background="#000"
     android:gravity="center">
 
-
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/rl_details"
-        android:visibility="gone"
-        android:background="#0033dd"
+        android:visibility="invisible"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
         android:animateLayoutChanges="true">
 
-    </RelativeLayout>
-
-    <ScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/scroll_view"
-        android:layout_alignParentStart="true"
-        android:visibility="gone"
-        android:background="#ff0000"
-        android:animateLayoutChanges="true"
-        >
-
-        <ImageView
+        <TextView
+            android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@mipmap/map"
+            android:layout_margin="32dp"
+            android:fontFamily="@font/papyrus_let_bold"
+            android:textColor="@color/orange"
+            android:textSize="32sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_gravity="center"
+            android:weightSum="20">
+
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="15">
+
+                <TextView
+                    android:id="@+id/tv_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/papyrus"
+                    android:textSize="24sp"
+                    android:textColor="@color/white"
+                    />
+
+            </ScrollView>
+
+            <ImageView
+                android:id="@+id/iv_image"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="5"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="475dp"
+        android:layout_height="match_parent"
+        android:id="@+id/rl_canvas"
+        android:background="@mipmap/background"
+        >
+
+        <com.lapic.thomas.explorador_primeira_tela.view.CanvasView
+            android:layout_width="475dp"
+            android:layout_height="match_parent"
+            android:id="@+id/canvas_view"
             />
 
-    </ScrollView>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/image_view"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="end|top"
+            android:visibility="invisible"
+            />
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:id="@+id/x_image"
+            android:src="@mipmap/x_image"
+            android:visibility="invisible"
+            />
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:id="@+id/image_hat"
+            android:src="@mipmap/hat"
+            android:visibility="invisible"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_gravity="bottom"
+            android:id="@+id/clear_button"
+            android:text="Limpar"
+            android:background="@android:color/transparent"
+            />
+
+    </FrameLayout>
+
+    <!--<ScrollView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/scroll_view"-->
+        <!--android:layout_alignParentStart="true"-->
+        <!--android:visibility="invisible"-->
+        <!--android:background="#ff0000"-->
+        <!--android:animateLayoutChanges="true"-->
+        <!--&gt;-->
+
+        <!--<ImageView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:src="@mipmap/map"-->
+            <!--/>-->
+
+    <!--</ScrollView>-->
 
     <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/rl_video"
         android:gravity="center"
+        android:background="@android:color/black"
         android:animateLayoutChanges="true">
 
         <com.lapic.thomas.explorador_primeira_tela.view.CustomVideoView

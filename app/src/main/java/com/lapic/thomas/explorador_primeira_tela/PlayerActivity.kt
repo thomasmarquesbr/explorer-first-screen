@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -15,6 +16,7 @@ import android.widget.Button
 import android.widget.MediaController
 import android.widget.RelativeLayout
 import android.widget.SeekBar
+import com.example.thomas.explorador_segunda_tela.model.Lupa
 import com.lapic.thomas.explorador_primeira_tela.network.MulticastGroup
 import com.lapic.thomas.explorador_primeira_tela.sync.Sincronizador
 import com.lapic.thomas.explorador_primeira_tela.view.CustomVideoView
@@ -25,10 +27,22 @@ import java.net.URLEncoder
 class PlayerActivity : AppCompatActivity(),
         MediaPlayer.OnPreparedListener, CustomVideoView.PlayPauseListener, MediaPlayer.OnCompletionListener {
 
+    private val heightDevice by lazy {
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        displayMetrics.heightPixels
+    }
+
+    private val widthDevice by lazy {
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        displayMetrics.widthPixels
+    }
     private val width by lazy { resources.displayMetrics.widthPixels + 144 }
     private val height by lazy { resources.displayMetrics.heightPixels }
     private val mediaController by lazy { CustomMediaController(this, false) }
     private val multicastGroup by lazy { MulticastGroup(this) }
+    private val controladorDesenho by lazy { ControladorDesenho(this, canvas_view, rl_canvas, widthDevice/2, heightDevice) }
     private lateinit var sincronizador: Sincronizador
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +52,8 @@ class PlayerActivity : AppCompatActivity(),
                 WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         hideSystemUI()
         configuraVideo()
+        Log.e("HEIGHT", "$heightDevice")
+        Log.e("WIDTH", "$widthDevice")
 //        object : CountDownTimer(5000, 5000) {
 //            override fun onTick(millisUntilFinished: Long) {}
 //            override fun onFinish() {
@@ -109,7 +125,7 @@ class PlayerActivity : AppCompatActivity(),
     // Functions
 
     fun maximizaVideo() {
-        scroll_view.visibility = View.GONE
+//        scroll_view.visibility = View.GONE
         rl_details.visibility = View.GONE
         val layoutParamsRLVideo = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         with(rl_video) {
@@ -144,10 +160,12 @@ class PlayerActivity : AppCompatActivity(),
             gravity = Gravity.CENTER
         }
 
-        with(scroll_view) {
-            layoutParams = RelativeLayout.LayoutParams(width / 2, ViewGroup.LayoutParams.WRAP_CONTENT)
-            visibility = View.VISIBLE
-        }
+
+
+//        with(scroll_view) {
+//            layoutParams = RelativeLayout.LayoutParams(width / 2, ViewGroup.LayoutParams.WRAP_CONTENT)
+//            visibility = View.VISIBLE
+//        }
     }
 
     private fun notificarSegundaTelaParaIniciarDesenho(duracaoTotal: Int) {
@@ -224,6 +242,32 @@ class PlayerActivity : AppCompatActivity(),
         jsonObject.put("currentTime", video_view.currentPosition/1000)
         val message = URLEncoder.encode(jsonObject.toString(), "UTF-8")
         multicastGroup.sendMessage(false, message)
+    }
+
+    fun inicializarDesenho(duration: Int) {
+        controladorDesenho.inicializarDesenho(duration)
+    }
+
+    fun retomarDesenho() {
+        controladorDesenho.retomarDesenho()
+    }
+
+    fun pausarDesenho() {
+        controladorDesenho.pausarDesenho()
+    }
+
+    fun finalizarDesenho() {
+        controladorDesenho.finalizarDesenho()
+    }
+
+    fun exibirLupa(id: Int, corLupa: String) {
+        controladorDesenho.exibirLupa(id, corLupa, false)
+    }
+
+    fun mostrarInfo(lupa: Lupa) {
+        tv_title.text = lupa.title
+        tv_description.text = lupa.description
+        iv_image.setImageResource(lupa.resIdImage)
     }
 
 
