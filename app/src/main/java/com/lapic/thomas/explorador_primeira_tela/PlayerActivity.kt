@@ -4,12 +4,14 @@ import android.animation.LayoutTransition
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.MediaController
 import android.widget.RelativeLayout
 import android.widget.SeekBar
@@ -25,7 +27,7 @@ class PlayerActivity : AppCompatActivity(),
 
     private val width by lazy { resources.displayMetrics.widthPixels + 144 }
     private val height by lazy { resources.displayMetrics.heightPixels }
-    private val mediaController by lazy { MediaController(this, false) }
+    private val mediaController by lazy { CustomMediaController(this, false) }
     private val multicastGroup by lazy { MulticastGroup(this) }
     private lateinit var sincronizador: Sincronizador
 
@@ -106,7 +108,7 @@ class PlayerActivity : AppCompatActivity(),
 
     // Functions
 
-    private fun maximizaVideo() {
+    fun maximizaVideo() {
         scroll_view.visibility = View.GONE
         rl_details.visibility = View.GONE
         val layoutParamsRLVideo = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
@@ -117,7 +119,7 @@ class PlayerActivity : AppCompatActivity(),
         }
     }
 
-    private fun redimensionaVideo() {
+    fun redimensionaVideo() {
         val relativeLayoutParamDetails = RelativeLayout.LayoutParams(width / 2, height / 2)
         with(relativeLayoutParamDetails) {
             addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
@@ -219,6 +221,7 @@ class PlayerActivity : AppCompatActivity(),
     private fun notificaSeguntaTelaParaPausarDesenho() {
         val jsonObject = JSONObject()
         jsonObject.put("PAUSE", "drawing")
+        jsonObject.put("currentTime", video_view.currentPosition/1000)
         val message = URLEncoder.encode(jsonObject.toString(), "UTF-8")
         multicastGroup.sendMessage(false, message)
     }
