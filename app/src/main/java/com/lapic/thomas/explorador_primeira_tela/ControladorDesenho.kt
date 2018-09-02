@@ -4,8 +4,8 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.CountDownTimer
-import android.os.Handler
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.view.Gravity.START
 import android.view.Gravity.TOP
 import android.view.MotionEvent
@@ -14,11 +14,9 @@ import android.widget.*
 import com.example.thomas.explorador_segunda_tela.model.Lupa
 import com.example.thomas.explorador_segunda_tela.model.Tipo
 import com.lapic.thomas.explorador_primeira_tela.dao.LupasDAO
-import com.lapic.thomas.explorador_primeira_tela.helper.PreferencesHelper
 import com.lapic.thomas.explorador_primeira_tela.view.CanvasView
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.util.*
 
 class ControladorDesenho(val context: Context,
                          val canvas: CanvasView,
@@ -26,7 +24,6 @@ class ControladorDesenho(val context: Context,
                          val widthDevice: Int,
                          val heightDevice: Int) {
 
-//    private val mPref = PreferencesHelper(context)
     private var sizeImage: Int = 0
     private var countTimer = 0
     private val lupasDAO = LupasDAO(context)
@@ -40,7 +37,9 @@ class ControladorDesenho(val context: Context,
     private var tempoAtual = 0
     private var mostrarAcima = true
     private var mostrarEsquerda = true
+    private var currentCoordinateIndex = 0
 
+    private lateinit var timer: CountDownTimer
     private lateinit var timerDrawing: CountDownTimer
 
     init {
@@ -76,21 +75,21 @@ class ControladorDesenho(val context: Context,
         currentCoordinateX = widthDevice * listCoordinateX[0] / WIDTH_BASE
         currentCoordinateY = heightDevice * listCoordinateY[0] / HEIGHT_BASE
         iniciarTemporizador(duracaoTotal)
+        currentCoordinateIndex = 0
         (context as PlayerActivity).runOnUiThread {
             canvas.clearCanvas()
             canvas.shootEventTouch(MotionEvent.ACTION_DOWN, currentCoordinateX - 1, currentCoordinateY - 1)
             timerDrawing = object : CountDownTimer(((duracaoTotal - tempoAtual) * 1000).toLong(), 380) {
-                private var i = 0
                 override fun onFinish() {
                     canvas.shootEventTouch(MotionEvent.ACTION_DOWN, currentCoordinateX + 1, currentCoordinateY + 1)
                     isDrawing = false
                 }
                 override fun onTick(millisUntilFinished: Long) {
-                    currentCoordinateX = widthDevice * listCoordinateX[i] / WIDTH_BASE
-                    currentCoordinateY = heightDevice * listCoordinateY[i] / HEIGHT_BASE
+                    currentCoordinateX = widthDevice * listCoordinateX[currentCoordinateIndex] / WIDTH_BASE
+                    currentCoordinateY = heightDevice * listCoordinateY[currentCoordinateIndex] / HEIGHT_BASE
                     moveChapeu()
                     canvas.shootEventTouch(MotionEvent.ACTION_MOVE, currentCoordinateX, currentCoordinateY)
-                    i++
+                    currentCoordinateIndex++
                 }
             }.start()
         }
@@ -98,7 +97,7 @@ class ControladorDesenho(val context: Context,
 
     private fun iniciarTemporizador(duracaoTotal: Int) {
         (context as PlayerActivity).runOnUiThread {
-            val timer = object : CountDownTimer((duracaoTotal * 1000).toLong(), 1000) {
+            timer = object : CountDownTimer((duracaoTotal * 1000).toLong(), 1000) {
                 override fun onFinish() {}
                 override fun onTick(millisUntilFinished: Long) {
                     countTimer++
@@ -107,12 +106,38 @@ class ControladorDesenho(val context: Context,
         }
     }
 
-    fun pausarDesenho() {
-
+    fun pausarDesenho(currentDuration: Int) {
+        tempoAtual = currentDuration
+        (context as PlayerActivity).runOnUiThread {
+            if (timerDrawing != null)
+                timerDrawing.cancel()
+            if (timer != null)
+                timer.cancel()
+        }
     }
 
-    fun retomarDesenho() {
+    fun retomarDesenho(totalDuration: Int, currentDuration: Int) {
+        tempoAtual = currentDuration
+        if (totalDuration == 0)
+            return
 
+        isDrawing = true
+        iniciarTemporizador(totalDuration)
+        (context as PlayerActivity).runOnUiThread {
+            timerDrawing = object : CountDownTimer(((totalDuration - tempoAtual) * 1000).toLong(), 380) {
+                override fun onFinish() {
+                    canvas.shootEventTouch(MotionEvent.ACTION_DOWN, currentCoordinateX + 1, currentCoordinateY + 1)
+                    isDrawing = false
+                }
+                override fun onTick(millisUntilFinished: Long) {
+                    currentCoordinateX = widthDevice * listCoordinateX[currentCoordinateIndex] / WIDTH_BASE
+                    currentCoordinateY = heightDevice * listCoordinateY[currentCoordinateIndex] / HEIGHT_BASE
+                    moveChapeu()
+                    canvas.shootEventTouch(MotionEvent.ACTION_MOVE, currentCoordinateX, currentCoordinateY)
+                    currentCoordinateIndex++
+                }
+            }.start()
+        }
     }
 
     fun finalizarDesenho() {
@@ -202,31 +227,6 @@ class ControladorDesenho(val context: Context,
     private fun exibirDialog(lupa: Lupa) {
         val playerActivity = (context as PlayerActivity)
         playerActivity.mostrarInfo(lupa)
-//        val metrics = context.getResources().displayMetrics
-//        val width = metrics.widthPixels
-//        val height = metrics.heightPixels
-//        val dialog = Dialog(context)
-//        with(dialog) {
-//            window?.requestFeature(Window.FEATURE_NO_TITLE)
-//            setContentView(R.layout.custom_dialog)
-//            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-//            window?.setGravity(Gravity.BOTTOM)
-//            window?.setLayout(ActionBar.LayoutParams.MATCH_PARENT, height / 3)
-//        }
-//        val titulo = dialog.findViewById<TextView>(R.id.tv_title)
-//        with(titulo) {
-//            textSize = (if (widthDevice > 1079) 24 else 16).toFloat()
-//            text = lupa.title
-//        }
-//        val descricao = dialog.findViewById<TextView>(R.id.tv_text)
-//        descricao.text = lupa.description
-//        val imagem = dialog.findViewById<ImageView>(R.id.iv_image)
-//        imagem.setImageResource(lupa.resIdImage)
-//        val botaoFechar = dialog.findViewById<ImageButton>(R.id.ib_close)
-//        botaoFechar.setOnClickListener {
-//            dialog.dismiss()
-//        }
-//        dialog.show()
     }
 
     fun moveChapeu() {

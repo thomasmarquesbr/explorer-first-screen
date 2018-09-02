@@ -56,7 +56,7 @@ public class MulticastGroup extends MulticastManager {
         } else if (json.has(RESUME)) {
             String action = json.getString(RESUME);
             if (action.equals("drawing")) {
-                mActivity.retomarDesenho();
+                mActivity.retomarDesenho(json.getInt("currentTime"));
             }
         } else if (json.has(STOP)) {
             String action = json.getString(STOP);
@@ -66,7 +66,7 @@ public class MulticastGroup extends MulticastManager {
         } else if (json.has(PAUSE)) {
             String action = json.getString(PAUSE);
             if (action.equals("drawing")) {
-                mActivity.pausarDesenho();
+                mActivity.pausarDesenho(json.getInt("currentTime"));
             }
         }
     }
